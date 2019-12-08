@@ -4,14 +4,23 @@ use std::fs::read_to_string;
 fn main() -> Result<()> {
     let input = read_to_string("input/day02.txt")?;
     let mut program = Program::from(input);
+    let program2 = program.clone();
     
-    while let Some(()) = program.step() {
+    program.run();
 
+    answer!(1, 1, program.first());
+
+    for x in 0..=99 {
+        for y in 0..=99 {
+            let mut program = program2.clone().change_values(x, y);
+            program.run();
+            if program.first() == 19690720 {
+                answer!(1, 2, format!("{}{}", x, y));
+                break;
+            }
+        }       
     }
 
-    let first = program.data.get(0).unwrap();
-
-    answer!(1, 1, first);
     Ok(())
 }
 
@@ -35,6 +44,23 @@ impl Program {
         self.head += 4;
 
         Some(())
+    }
+
+    fn run(&mut self) {
+        while let Some(()) = self.step() {
+
+        }
+    }
+
+    fn first(&self) -> usize {
+        *self.data.get(0).unwrap()
+    }
+
+    fn change_values(mut self, x: usize, y: usize) -> Self {
+        self.data[1] = x;
+        self.data[2] = y;
+
+        self
     }
 }
 
