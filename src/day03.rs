@@ -121,7 +121,9 @@ impl TryFrom<&str> for WireTrack {
     fn try_from(s: &str) -> Result<Self> {
         let mut wire_track = WireTrack::new();
         let mut point = Point::default(); // zero, zero
-        for turn in s.split(',').filter_map(|s| Turn::try_from(s).ok()) {
+        for turn in s.split(',')
+            .filter_map(|s| Turn::try_from(s).ok())
+        {
             let vector = Vector::new(point, turn);
             let track = WireTrack::from(vector);
             wire_track.concat(track);
@@ -136,7 +138,7 @@ impl From<Vector> for WireTrack {
     fn from(vector: Vector) -> WireTrack {
         let mut wire_track = WireTrack::new();
 
-        
+       // Do stuff! 
 
         wire_track
     }
@@ -149,6 +151,10 @@ struct Point {
 }
 
 impl Point {
+    fn new(x: i16, y: i16) -> Self {
+        Point { x, y }
+    }
+
     fn turn(&self, turn: Turn) -> Self {
         match turn.dir {
             Direction::Left => Point {
@@ -161,11 +167,11 @@ impl Point {
             },
             Direction::Up => Point {
                 x: self.x,
-                y: self.y + turn.dist,
+                y: self.y - turn.dist,
             },
             Direction::Down => Point {
                 x: self.x,
-                y: self.y - turn.dist,
+                y: self.y + turn.dist,
             }
         }
     }
@@ -219,6 +225,33 @@ impl Vector {
     }
 }
 
+#[test]
+fn vector_end() {
+    let vector = Vector::new(
+        Point::default(),
+        Turn::new(Direction::Right, 5),
+    );
+    assert_eq!(vector.end(), Point::new(5, 0));
+
+    let vector = Vector::new(
+        Point::default(),
+        Turn::new(Direction::Left, 5),
+    );
+    assert_eq!(vector.end(), Point::new(-5, 0));
+
+    let vector = Vector::new(
+        Point::default(),
+        Turn::new(Direction::Up, 5),
+    );
+    assert_eq!(vector.end(), Point::new(0, -5));
+
+    let vector = Vector::new(
+        Point::default(),
+        Turn::new(Direction::Down, 5),
+    );
+    assert_eq!(vector.end(), Point::new(0, 5));
+}
+
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,)]
 enum Plot {
@@ -251,6 +284,12 @@ enum Direction {
 struct Turn {
     dir: Direction,
     dist: i16,
+}
+
+impl Turn {
+    fn new(dir: Direction, dist: i16) -> Self {
+        Turn { dir, dist }
+    }
 }
 
 impl TryFrom<&str> for Turn {
