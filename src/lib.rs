@@ -9,3 +9,18 @@ macro_rules! answer {
         println!("Day {}, Part {}: {}", $day, stringify!($part), $answer);
     }
 }
+
+#[macro_export]
+macro_rules! boxerr {
+    ($err: expr) => {
+        Err(Box::new($err))
+    }
+}
+
+#[macro_export]
+macro_rules! ioerr {
+    () => {
+        Err(Box::new(std::io::Error::from(std::io::ErrorKind::InvalidInput)))
+    }
+}
+
