@@ -50,11 +50,15 @@ impl WireTrack {
 
     fn concat(&mut self, other: Self) {
         for (point, plot) in other.map.into_iter() {
-            if let Some(_plot) = self.map.get(&point) {
-                self.map.insert(point, Plot::Intersect);
+            let checkplot = if point == Point::default() {
+                Plot::Start
+            } else if let Some(_plot) = self.map.get(&point) {
+               Plot::Intersect
             } else {
-                self.map.insert(point, plot);
-            }
+                plot
+            };
+
+            self.map.insert(point, checkplot);
         }
     }
 
@@ -72,6 +76,7 @@ impl WireTrack {
             .0.y
     }
 
+    #[allow(unused)]
     fn top_left(&self) -> Point {
         Point {
             x: self.left(),
@@ -93,6 +98,7 @@ impl WireTrack {
             .0.x
     }
 
+    #[allow(unused)]
     fn bot_right(&self) -> Point {
         Point {
             x: self.right(),
@@ -103,10 +109,10 @@ impl WireTrack {
 
 impl fmt::Display for WireTrack {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let right = self.right();
+        let right = self.right() + 1;
 
-        for y in self.top()..=self.bot() {
-            for x in self.left()..=right {
+        for y in (self.top() - 1)..=(self.bot() + 1) {
+            for x in (self.left() - 1)..=right {
                 let point = Point { x, y, };
 
                 if let Some(plot) = self.map.get(&point) {
@@ -164,8 +170,13 @@ impl From<Vector> for WireTrack {
             Direction::Down | Direction::Up => Plot::Vert,
         };
 
-        for point in vector.points() {
-            wire_track.map.insert(point, plot);
+        let mut points = vector.points().peekable();
+        while let Some(point) = points.next() {
+            if let None = points.peek() {
+                wire_track.map.insert(point, Plot::Turn);
+            } else {
+                wire_track.map.insert(point, plot);
+            }
         }
 
         wire_track
@@ -244,6 +255,7 @@ impl Vector {
         Vector { start, turn, }
     }
 
+    #[allow(unused)]
     fn len(&self) -> i16 {
         self.turn.dist
     }
@@ -341,6 +353,7 @@ enum Plot {
     Start,
     Horiz,
     Vert,
+    Turn,
     Intersect,
 }
 
@@ -349,7 +362,8 @@ impl fmt::Display for Plot {
         write!(f, "{}",  match self {
             Plot::Horiz => '-',
             Plot::Vert => '|',
-            Plot::Intersect => '+',
+            Plot::Intersect => 'X',
+            Plot::Turn => '+',
             Plot::Start => 'O',
         })
     }
