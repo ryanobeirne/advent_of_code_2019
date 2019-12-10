@@ -7,13 +7,26 @@ use std::fmt;
 fn main() -> Result<()> {
     let input = std::fs::read_to_string("input/day03.txt")?;
 
-    for line in input.lines() {
-        let wire_track = WireTrack::try_from(line)?;
-        println!("{}", wire_track);
+    let tracks = input.lines()
+        .filter_map(|line| WireTrack::try_from(line).ok())
+        .collect::<Vec<_>>();
+
+    assert_eq!(tracks.len(), 2, "Looking for 2 Wire Tracks!");
+
+    let mut matches = HashMap::new();
+    for point in tracks[0].map.keys() {
+        if point == &Point::default() { continue }
+        if let Some(_plot) = tracks[1].map.get(point) {
+            matches.insert(point, point.distance(&Point::new(0,0)));
+        }
     }
 
+    let min_dist = matches.iter()
+        .min_by(|(_pa, da), (_pb, db)| da.cmp(db))
+        .expect("NO MATCHES FOUND")
+        .1;
 
-    answer!(03, 1, 42);
+    answer!(03, 1, min_dist);
     Ok(())
 }
 
@@ -115,8 +128,12 @@ impl fmt::Display for WireTrack {
 
 #[test]
 fn wire_track() -> Result<()> {
-    let track = WireTrack::try_from("R8,U5,L5,D3")?;
-    println!("WIRETRACK:\n{}", track);
+    let mut track1 = WireTrack::try_from("R8,U5,L5,D3")?;
+    let track2 = WireTrack::try_from("U7,R6,D4,L4")?;
+    println!("WIRETRACK:\n{}", &track1);
+    println!("WIRETRACK:\n{}", &track2);
+    track1.concat(track2);
+    println!("WIRETRACK:\n{}", &track1);
     Ok(())
 }
 
@@ -280,6 +297,14 @@ impl IntoIterator for Vector {
             len,
             index: 0,
         }
+    }
+}
+
+#[test]
+fn points_iter() {
+    let vector = Vector::new(Point::new(0,0), Turn::new(Direction::Right, 5));
+    for point in vector.points() {
+        dbg!(point);
     }
 }
 
