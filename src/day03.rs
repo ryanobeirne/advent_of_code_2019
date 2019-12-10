@@ -13,18 +13,7 @@ fn main() -> Result<()> {
 
     assert_eq!(tracks.len(), 2, "Looking for 2 Wire Tracks!");
 
-    let mut matches = HashMap::new();
-    for point in tracks[0].map.keys() {
-        if point == &Point::default() { continue }
-        if let Some(_plot) = tracks[1].map.get(point) {
-            matches.insert(point, point.distance(&Point::new(0,0)));
-        }
-    }
-
-    let min_dist = matches.iter()
-        .min_by(|(_pa, da), (_pb, db)| da.cmp(db))
-        .expect("NO MATCHES FOUND")
-        .1;
+    let min_dist = tracks[0].closest_intersection(&tracks[1]);
 
     answer!(03, 1, min_dist);
     Ok(())
@@ -46,6 +35,21 @@ impl Default for WireTrack {
 impl WireTrack {
     fn new() -> Self {
         WireTrack::default()
+    }
+
+    fn closest_intersection(&self, other: &Self) -> i16 {
+        let mut matches = HashMap::new();
+        for point in self.map.keys() {
+            if point == &Point::default() { continue }
+            if let Some(_plot) = other.map.get(point) {
+                matches.insert(point, point.distance(&Point::default()));
+            }
+        }
+
+        matches.into_iter()
+            .min_by(|(_pa, da), (_pb, db)| da.cmp(db))
+            .expect("NO MATCHES FOUND")
+            .1
     }
 
     fn concat(&mut self, other: Self) {
@@ -190,6 +194,7 @@ struct Point {
 }
 
 impl Point {
+    #[cfg(test)]
     fn new(x: i16, y: i16) -> Self {
         Point { x, y }
     }
@@ -402,11 +407,11 @@ impl TryFrom<&str> for Turn {
                 'R' => Direction::Right,
                 'U' => Direction::Up,
                 'D' => Direction::Down,
-                _ => return ioerr!(),
+                _ => return ioerr!(f),
             };
             Ok(Turn { dir, dist, })
         } else {
-            ioerr!()
+            ioerr!(s.to_owned())
         }
     }       
 }
