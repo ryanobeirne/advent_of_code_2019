@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::ops::{Add, Sub};
 use std::convert::TryFrom;
 use std::fmt;
+use std::iter::FromIterator;
 
 fn main() -> Result<()> {
     let input = std::fs::read_to_string("input/day03.txt")?;
@@ -22,13 +23,14 @@ fn main() -> Result<()> {
 #[derive(Debug, Clone)]
 struct WireTrack {
     map: HashMap<Point, Plot>,
+    vec: Vec<Vector>,
 }
 
 impl Default for WireTrack {
     fn default() -> Self {
         let mut map = HashMap::new();
         map.insert(Point::default(), Plot::Start);
-        WireTrack { map }
+        WireTrack { map, vec: Vec::new() }
     }
 }
 
@@ -63,7 +65,15 @@ impl WireTrack {
             };
 
             self.map.insert(point, checkplot);
+            for vector in other.vec.iter() {
+                self.vec.push(*vector);
+            }
         }
+
+    }
+
+    fn points(self) -> VectorPoints {
+        self.into_iter()
     }
 
     fn left(&self) -> i16 {
@@ -144,6 +154,13 @@ fn wire_track() -> Result<()> {
     println!("WIRETRACK:\n{}", &track2);
     track1.concat(track2);
     println!("WIRETRACK:\n{}", &track1);
+
+    assert_eq!(
+        track1.clone().points(),
+        track1.vec.into_iter()
+            .flat_map(|v| v.points())
+            .collect()
+        );
     Ok(())
 }
 
@@ -182,6 +199,8 @@ impl From<Vector> for WireTrack {
                 wire_track.map.insert(point, plot);
             }
         }
+
+        wire_track.vec.push(vector.clone());
 
         wire_track
     }
@@ -274,6 +293,7 @@ impl Vector {
     }
 }
 
+#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,)]
 struct VectorPoints {
     points: Vec<Point>,
     index: usize,
@@ -309,6 +329,28 @@ impl IntoIterator for Vector {
             len += 1;
         }
 
+        VectorPoints {
+            points,
+            len,
+            index: 0,
+        }
+    }
+}
+
+impl IntoIterator for WireTrack {
+    type Item = Point;
+    type IntoIter = VectorPoints;
+    fn into_iter(self) -> Self::IntoIter {
+        self.vec.iter()
+            .flat_map(|v| v.points())
+            .collect()
+    }
+}
+
+impl FromIterator<Point> for VectorPoints {
+    fn from_iter<I: IntoIterator<Item=Point>>(iter: I) -> Self {
+        let points: Vec<Point> = iter.into_iter().collect();
+        let len = points.len();
         VectorPoints {
             points,
             len,
