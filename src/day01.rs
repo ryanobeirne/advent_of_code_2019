@@ -1,9 +1,9 @@
 use advent_of_code_2019::*;
 use std::fs::read_to_string;
 
-fn main() -> Result<()> {
-    let module_masses: Vec<isize> = read_to_string("input/day01.txt")?
-        .lines()
+pub fn main(input: Option<&str>) -> Result<()> {
+    let input = read_to_string(input.unwrap_or("input/day01.txt"))?;
+    let module_masses: Vec<isize> = input.lines()
         .filter_map(|line| line.parse::<isize>().ok())
         .collect();
 

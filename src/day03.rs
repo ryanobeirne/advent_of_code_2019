@@ -3,10 +3,11 @@ use std::collections::HashMap;
 use std::ops::{Add, Sub};
 use std::convert::TryFrom;
 use std::fmt;
+use std::fs::read_to_string;
 use std::iter::FromIterator;
 
-fn main() -> Result<()> {
-    let input = std::fs::read_to_string("input/day03.txt")?;
+pub fn main(input: Option<&str>) -> Result<()> {
+    let input = read_to_string(input.unwrap_or("input/day03.txt"))?;
 
     let tracks = input.lines()
         .filter_map(|line| WireTrack::try_from(line).ok())

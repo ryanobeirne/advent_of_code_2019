@@ -1,9 +1,12 @@
 use advent_of_code_2019::*;
 use std::collections::HashMap;
+use std::fs::read_to_string;
+use std::ops::RangeInclusive;
 
-fn main() -> Result<()> {
+pub fn main(input: Option<&str>) -> Result<()> {
+    let input = read_to_string(input.unwrap_or("input/day04.txt"))?;
     // Puzzle input
-    let range = 234208..=765869_i32;
+    let range = range_from_str(&input)?;
 
     let count = range.clone()
         .filter(|i| Digits::from(*i).is_possible_pwd_part1())
@@ -16,6 +19,17 @@ fn main() -> Result<()> {
     answer!(04, 2, count2);
 
     Ok(())
+}
+
+fn range_from_str(s: &str) -> Result<RangeInclusive<i32>> {
+    let split = s.trim().split('-')
+        .filter_map(|s| s.parse::<i32>().ok())
+        .collect::<Vec<i32>>();
+    if split.len() !=2 {
+        ioerr!(s.to_string())
+    } else {
+        Ok(split[0]..=split[1])
+    }
 }
 
 #[derive(Debug)]
