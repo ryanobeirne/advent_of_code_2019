@@ -1,3 +1,6 @@
+pub mod intcode;
+pub use intcode::*;
+
 use std::error::Error;
 use std::fmt;
 
